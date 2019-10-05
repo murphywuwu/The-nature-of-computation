@@ -73,16 +73,21 @@ Multiply.new(Number.new(1), Multiply.new(
   Number.new(4)
 ))
 
-expression.reducible?
+class Machine < Struct.new(:expression)
+  def step
+    self.expression = expression.reduce
+  end
 
-expression = expression.reduce
+  def run
+    while expression.reducible?
+      puts expression
+      step
+    end
+    puts expression
+  end
+end
 
-expression.reducible?
-
-expression = expression.reduce
-
-expression.reducible?
-
-expression = expression.reduce
-
-expression.reducible?
+Machine.new(Add.new(
+  Multiply.new(Number.new(1), Number.new(2)),
+  Multiply.new(Number.new(3), Number.new(4))
+)).run
