@@ -116,43 +116,62 @@ class Variable < Struct.new(:name)
   end 
 end
 
-Number.new(1).reducible?
-Add.new(Number.new(1), Number.new(2)).reducible?
-
-expression = Add.new(
-  Multiply.new(Number.new(1), Number.new(2)),
-  Multiply.new(Number.new(3), Number.new(4))
-)
-
-Multiply.new(Number.new(1), Multiply.new(
-  Add.new(Number.new(2), Number.new(3)),
-  Number.new(4)
-))
-
-class Machine < Struct.new(:expression, :enviroment)
-  def step
-    self.expression = expression.reduce(enviroment)
+class DoNothing
+  def to_s
+    'do-nothing'
   end
 
-  def run
-    while expression.reducible?
-      puts expression
-      step
-    end
-    puts expression
+  def inspect
+    " <<#{self}>> "
+  end
+
+  def ==(other_statement)
+    other_statement.instance_of?(DoNothing)
+  end
+
+  def reducible?
+    false
   end
 end
 
-Machine.new(Add.new(
-  Multiply.new(Number.new(1), Number.new(2)),
-  Multiply.new(Number.new(3), Number.new(4))
-)).run
+class Assign < Struct.new(:name, :expression)
+  def to_s
+    "#{name} = #{expression}"
+  end
+
+  def inspect
+    " <<#{self}>> "
+  end
+
+  def reducible?
+    true
+  end
+
+  def reduce(enviroment)
+    if expression.reducible?
+      [Assign.new(name, expression.reduce(enviroment)), enviroment]
+    else
+      [DoNothing.new, enviroment.merge({ name => expression })]
+    end
+  end
+end
+
+class Machine < Struct.new(:statement, :enviroment)
+  def step
+    self.statement, self.enviroment = statement.reduce(enviroment)
+  end
+
+  def run
+    while statement.reducible?
+      puts "#{statement}, #{enviroment}"
+      step
+    end
+    puts "#{statement}, #{enviroment}"
+  end
+end
+
 
 Machine.new(
-  LessThan.new(Number.new(5), Add.new(Number.new(2), Number.new(2)))
-).run
-
-Machine.new(
-  Add.new(Variable.new(:x), Variable.new(:y)),
-  { x: Number.new(3), y: Number.new(4) }
+  Assign.new(:x, Add.new(Variable.new(:x), Number.new(1))),
+  { x: Number.new(2) }
 ).run
