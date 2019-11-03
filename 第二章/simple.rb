@@ -141,6 +141,9 @@ class Variable < Struct.new(:name)
 end
 
 class DoNothing
+  def evaluate(enviroment)
+    enviroment
+  end
   def to_s
     'do-nothing'
   end
@@ -159,6 +162,9 @@ class DoNothing
 end
 
 class Assign < Struct.new(:name, :expression)
+  def evaluate(enviroment)
+    enviroment.merge({ name => expression.evaluate(enviroment) })
+  end
   def to_s
     "#{name} = #{expression}"
   end
@@ -182,6 +188,14 @@ end
 
 
 class If < Struct.new(:condition, :consequence, :alternative)
+  def evaluate(enviroment)
+    case condition.evaluate(enviroment)
+    when Boolean.new(true)
+      consequence.evaluate(enviroment)
+    when Boolean.new(false)
+      alternative.evaluate(enviroment)
+    end
+  end
   def to_s
     "if (#{condition}) { #{consequence} } else { #{alternative} }"
   end
@@ -209,6 +223,9 @@ class If < Struct.new(:condition, :consequence, :alternative)
 end
 
 class Sequence < Struct.new(:first, :second)
+  def evaluate(enviroment)
+    second.evaluate(first.evaluate(enviroment))
+  end
   def to_s
     "#{first}; #{second}"
   end
@@ -234,6 +251,14 @@ class Sequence < Struct.new(:first, :second)
 end
 
 class While < Struct.new(:condition, :body)
+  def evaluate(enviroment)
+    case condition.evaluate(enviroment)
+    when Boolean.new(true)
+      evaluate(body.evaluate(enviroment))
+    when Boolean.new(false)
+      enviroment
+    end
+  end
   def to_s
     "while (#{condition}) { #{body} }"
   end
@@ -265,9 +290,14 @@ class Machine < Struct.new(:statement, :enviroment)
   end
 end
 
-Number.new(23).evaluate({})
-Variable.new(:x).evaluate({ x: Number.new(23) })
-LessThan.new(
-  Add.new(Variable.new(:x), Number.new(2)),
-  Variable.new(:y)
-).evaluate({ x: Number.new(2), y: Number.new(5) })
+statement = Sequence.new(
+  Assign.new(:x, Add.new(Number.new(1), Number.new(1))),
+  Assign.new(:y, Add.new(Variable.new(:x),  Number.new(3)))
+)
+statement.evaluate({})
+
+statement = While.new(
+  LessThan.new(Variable.new(:x), Number.new(5)),
+  Assign.new(:x, Multiply.new(Variable.new(:x), Number.new(3)))
+)
+statement.evaluate({ x: Number.new(3) })
