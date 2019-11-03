@@ -82,3 +82,19 @@ dfa.accepting? # false
 # current_state  3 - [2, 'b', 3]
 dfa.read_string('baaab')
 dfa.accepting? # true
+
+class DFADesign < Struct.new(:start_state, :accept_states, :rulebook)
+  def to_dfa
+    # 一旦DFA获得一些输入，它就可能不再处于起始状态了，因此我们不能再次使用它检查输入的一个新的完整序列。
+    # 这意味着要从头创建它--每次检测输入的新的完整序列，都创建一个新的DFA对象-像以前那样使用同样的起始状态、接受状态和规则手册。
+    DFA.new(start_state, accept_states, rulebook)
+  end
+  def accepts?(string)
+    to_dfa.tap { |dfa| dfa.read_string(string) }.accepting?
+  end
+end
+
+dfa_design = DFADesign.new(1, [3], rulebook)
+dfa_design.accepts?('a')
+dfa_design.accepts?('baa')
+dfa_design.accepts?('baba')
