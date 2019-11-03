@@ -36,3 +36,49 @@ rulebook = DFARulebook.new([
 rulebook.next_state(1, 'a') # 2
 rulebook.next_state(1, 'b') # 1
 rulebook.next_state(2, 'b') # 3
+
+# 跟踪当前状态，并报告它当前是否处于接受状态
+class DFA < Struct.new(:current_state, :accept_states, :rulebook)
+  def accepting?
+    accept_states.include?(current_state)
+  end
+  # 从输入中读取一个字符，然后查阅规则手册，再相应地改变状态
+  def read_character(character)
+    self.current_state = rulebook.next_state(current_state, character)
+  end
+  def read_string(string)
+    string.chars.each do |character|
+      read_character(character)
+    end
+  end
+end
+
+DFA.new(1, [1,3], rulebook).accepting? # true
+DFA.new(1, [3], rulebook).accepting? # false
+
+dfa = DFA.new(1, [3], rulebook)
+dfa.accepting? # false
+dfa.read_character('b')
+# current_state: 1 - [1, 'b', 1]
+dfa.accepting? # false
+# current_state: 2 - [1, 'a', 2]
+# current_state: 2 - [2, 'a', 2]
+# current_state: 2 - [2, 'a', 2]
+3.times do dfa.read_character('a') end;
+dfa.accepting? # false
+
+# current_state: 3 - [2, 'b', '3']
+dfa.read_character('b')
+dfa.accepting? # true
+
+
+dfa = DFA.new(1, [3], rulebook)
+dfa.accepting? # false
+
+# current_state: 1 - [1, 'b', 1]
+# current_state  2 - [1, 'a', 2]
+# current_state  2 - [2, 'a', 2]
+# current_state  2 - [2, 'a', 2]
+# current_state  3 - [2, 'b', 3]
+dfa.read_string('baaab')
+dfa.accepting? # true
