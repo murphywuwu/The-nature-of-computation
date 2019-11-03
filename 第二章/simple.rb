@@ -1,4 +1,7 @@
 class Number < Struct.new(:value)
+  def evaluate(enviroment)
+    self
+  end
   def to_s
     value.to_s
   end
@@ -13,6 +16,10 @@ class Number < Struct.new(:value)
 end
 
 class Add < Struct.new(:left, :right)
+  def evaluate(enviroment)
+    Number.new(left.evaluate(enviroment).value + right.evaluate(enviroment).value)
+  end
+
   def to_s
     "#{left} + #{right}"
   end
@@ -37,6 +44,10 @@ class Add < Struct.new(:left, :right)
 end
 
 class Multiply < Struct.new(:left, :right)
+  def evaluate(enviroment)
+    Number.new(left.evaluate(enviroment).value * right.evaluate(enviroment).value)
+  end
+
   def to_s
     "#{left} * #{right}"
   end
@@ -61,6 +72,10 @@ class Multiply < Struct.new(:left, :right)
 end
 
 class Boolean < Struct.new(:value)
+  def evaluate(enviroment)
+    self
+  end
+
   def to_s
     value.to_s
   end
@@ -75,6 +90,9 @@ class Boolean < Struct.new(:value)
 end
 
 class LessThan < Struct.new(:left, :right)
+  def evaluate(enviroment)
+    Boolean.new(left.evaluate(enviroment).value < right.evaluate(enviroment).value)
+  end
   def to_s
     "#{left} < #{right}"
   end
@@ -98,7 +116,13 @@ class LessThan < Struct.new(:left, :right)
   end
 end
 
-class Variable < Struct.new(:name) 
+class Variable < Struct.new(:name)
+  # 变量(Variable)表达式是唯一的，这样它们的小步语义允许它们在成为一个值之前只规约一次，所以
+  # 它们的大步语义规则和小步规则一样：在环境中查找变量名然后返回它的值
+  def evaluate(enviroment)
+    enviroment[name]
+  end
+
   def to_s
     name.to_s
   end
@@ -241,10 +265,9 @@ class Machine < Struct.new(:statement, :enviroment)
   end
 end
 
-Machine.new(
-  While.new(
-    LessThan.new(Variable.new(:x), Number.new(5)),
-    Assign.new(:x, Multiply.new(Variable.new(:x), Number.new(3)))
-  ),
-  { x: Number.new(1) }
-).run
+Number.new(23).evaluate({})
+Variable.new(:x).evaluate({ x: Number.new(23) })
+LessThan.new(
+  Add.new(Variable.new(:x), Number.new(2)),
+  Variable.new(:y)
+).evaluate({ x: Number.new(2), y: Number.new(5) })
