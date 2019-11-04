@@ -19,6 +19,18 @@ class NFARuleBook < Struct.new(:rules)
     # 遍历当前可能的状态，根据输入character获的对应的规则，并返回next_state
     states.flat_map { |state| follow_rules_for(state, character) }.to_set
   end
+
+  # 找到所有在没有任何输入时的起始状态
+  def follow_free_moves(states) 
+    more_states = next_states(states, nil);
+
+    # 由next_states(states, nil)找到的每一个状态都已经包含在states里时，它就返回找到的所有状态
+    if more_states.subset?(states)
+      states
+    else
+      follow_free_moves(states + more_states);
+    end
+  end
   
   def follow_rules_for(state, character)
     rules_for(state, character).map(&:follow)
@@ -44,13 +56,17 @@ rulebook.next_states(Set[1,3], 'b')
 
 class NFA < Struct.new(:current_states, :accept_states, :rulebook)
   def read_character(character)
-    self.current_states = rulebook.next_states(current_states,character)
+    self.current_states = rulebook.next_states(current_states(),character)
   end
 
   def read_string(string)
     string.chars.each do |character|
       read_character(character)
     end
+  end
+
+  def current_states
+    rulebook.follow_free_moves(super)
   end
 
   # 这个NFA类与我们之前的DFA非常相似。不同的是，它有一个当前可能的状态集合current_states，
@@ -92,3 +108,24 @@ nfa_design = NFADesign.new(1, [4], rulebook);
 nfa_design.accepts?('bab') # true
 nfa_design.accepts?('bbbbb') # true
 nfa_design.accepts?('bbabb') # false
+
+rulebook = NFARuleBook.new([
+  FARule.new(1, nil, 2), FARule.new(1, nil, 4),
+  FARule.new(2, 'a', 3),
+  FARule.new(3, 'a', 2),
+  FARule.new(4, 'a', 5),
+  FARule.new(5, 'a', 6),
+  FARule.new(6, 'a', 4),
+]);
+
+rulebook.next_states(Set[1], nil)
+# <Set: {2, 4}>
+
+rulebook.follow_free_moves(Set[1])
+# <Set: {1, 2, 4}>
+
+nfa_design = NFADesign.new(1, [2, 4], rulebook);
+nfa_design.accepts?('aa') # true
+nfa_design.accepts?('aaa') # true
+nfa_design.accepts?('aaaaa') # false
+nfa_design.accepts?('aaaaaa') # true
