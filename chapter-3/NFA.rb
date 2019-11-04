@@ -54,6 +54,9 @@ rulebook.next_states(Set[1, 2], 'a')
 rulebook.next_states(Set[1,3], 'b')
 # <Set: {1, 2, 4}>
 
+# NFA: 
+# 可读取字符串，并根据事先预置好的rulebook，转换其状态
+# 同时也可判断转换后的状态是否是处于可接受状态
 class NFA < Struct.new(:current_states, :accept_states, :rulebook)
   def read_character(character)
     self.current_states = rulebook.next_states(current_states(),character)
