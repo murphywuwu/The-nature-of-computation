@@ -96,6 +96,7 @@ nfa.accepting? # false
 nfa.read_string('bbbbb');
 nfa.accepting? # true
 
+# 根据NFA的初始状态，创建一个新的NFA对象
 class NFADesign < Struct.new(:start_state, :accept_states, :rulebook )
   def accepts?(string)
     to_nfa.tap { |nfa| nfa.read_string(string) }.accepting?
