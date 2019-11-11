@@ -191,6 +191,6 @@ class Repeat < Struct.new(:pattern)
 end
 
 pattern = Concatenate.new(Literal.new('a'), Literal.new('b'))
-pattern.matches?('a')
-pattern.matches?('ab')
-pattern.matches?('abc')
+pattern.matches?('a') # false
+pattern.matches?('ab') # true
+pattern.matches?('abc') # false
