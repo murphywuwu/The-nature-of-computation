@@ -219,8 +219,13 @@ class Repeat < Struct.new(:pattern)
 end
 
 
-pattern = Repeat.new(Literal.new('a'))
-pattern.matches?('') # true
-pattern.matches?('a') # true
-pattern.matches?('aaa') # true
-pattern.matches?('b') # false
+pattern = Repeat.new(Concatenate.new(Literal.new('a'), Choose.new(Empty.new, Literal.new('b'))))
+
+pattern.matches?('')
+pattern.matches?('a')
+pattern.matches?('aa')
+pattern.matches?('ab')
+pattern.matches?('aba')
+pattern.matches?('abab')
+pattern.matches?('abaab')
+pattern.matches?('abba') # false
