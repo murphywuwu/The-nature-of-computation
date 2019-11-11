@@ -49,7 +49,7 @@ class NFA < Struct.new(:current_states, :accept_states, :rulebook)
       read_character(character)
     end
   end
-
+  # 找到当前状态的所有自由态
   def current_states
     rulebook.follow_free_moves(super)
   end
@@ -145,6 +145,20 @@ class Concatenate < Struct.new(:first, :second)
   def precedence
     1
   end
+
+  def to_nfa_design
+    first_nfa_design = first.to_nfa_design
+    second_nfa_design = second.to_nfa_design
+
+    start_state = first_nfa_design.start_state
+    accept_states = second_nfa_design.accept_states
+
+    rules = first_nfa_design.rulebook.rules + second_nfa_design.rulebook.rules;
+    extra_rules = first_nfa_design.accept_states.map { |state| FARule.new(state, nil, second_nfa_design.start_state) }
+    rulebook = NFARulebook.new(rules + extra_rules);
+
+    NFADesign.new(start_state, accept_states, rulebook)
+  end 
 end
 
 # |, 0
@@ -176,24 +190,7 @@ class Repeat < Struct.new(:pattern)
   end
 end
 
-pattern = Repeat.new(Literal.new('a'));
-# /(a)*/
-pattern = Repeat.new(
-  Choose.new(
-    Concatenate.new(Literal.new('a'), Literal.new('b')),
-    Literal.new('a'),
-  ),
-)
-
-# /(ab|a)*/
-
-nfa_design = Empty.new.to_nfa_design
-nfa_design.accepts?('') # true
-nfa_design.accepts?('a') # false
-
-nfa_design = Literal.new('a').to_nfa_design
-nfa_design.accepts?('') # false
-nfa_design.accepts?('a') # true
-
-Empty.new().matches?('a') # false
-Literal.new('a').matches?('a') # true
+pattern = Concatenate.new(Literal.new('a'), Literal.new('b'))
+pattern.matches?('a')
+pattern.matches?('ab')
+pattern.matches?('abc')
