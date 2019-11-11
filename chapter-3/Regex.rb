@@ -203,10 +203,24 @@ class Repeat < Struct.new(:pattern)
   def  precedence
     2
   end
+
+  def to_nfa_design
+    pattern_nfa_design = pattern.to_nfa_design
+    
+    start_state = Object.new
+    accept_states = pattern_nfa_design.accept_states + [start_state]
+
+    rules = pattern_nfa_design.rulebook.rules
+    extra_rules = pattern_nfa_design.accept_states.map { |accept_state|  FARule.new(accept_state, nil, pattern_nfa_design.start_state) } + [FARule.new(start_state, nil, pattern_nfa_design.start_state)]
+
+    rulebook = NFARulebook.new(rules+extra_rules)
+    NFADesign.new(start_state, accept_states, rulebook)
+  end
 end
 
 
-pattern = Choose.new(Literal.new('a'), Literal.new('b'))
+pattern = Repeat.new(Literal.new('a'))
+pattern.matches?('') # true
 pattern.matches?('a') # true
-pattern.matches?('b') # true
-pattern.matches?('c') # false
+pattern.matches?('aaa') # true
+pattern.matches?('b') # false
