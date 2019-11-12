@@ -133,3 +133,18 @@ nfa_design.accepts?('aa') # true
 nfa_design.accepts?('aaa') # true
 nfa_design.accepts?('aaaaa') # false
 nfa_design.accepts?('aaaaaa') # true
+
+rulebook = NFARuleBook.new([
+  FARule.new(0, '(', 1), FARule.new(1, ')', 0),
+  FARule.new(1, '(', 2), FARule.new(2, ')', 1),
+  FARule.new(2, '(', 3), FARule.new(3, ')', 2),
+])
+
+nfa_design = NFADesign.new(0, [0], rulebook)
+nfa_design.accepts?('(()') # false
+nfa_design.accepts?('())') # false
+nfa_design.accepts?('(())') # true
+nfa_design.accepts?('(()(()()))') # true
+
+# 嵌套的等级超过3，它就会失败
+nfa_design.accepts?('(((())))') # false
