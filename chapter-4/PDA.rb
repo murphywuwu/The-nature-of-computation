@@ -67,6 +67,7 @@ class DPDARulebook < Struct.new(:rules)
   end
   
   # 根据当前状态，栈以及输入，检测和当前PDA匹配的规则
+  # 确定性：当前的状态和栈只能匹配上一个规则
   def rule_for(configuration, character)
     rules.detect { |rule|  rule.applies_to?(configuration, character) }
   end
@@ -85,3 +86,26 @@ configuration = rulebook.next_configuration(configuration, '(')
 #<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "b", "$"]>>
 configuration = rulebook.next_configuration(configuration, ')')
 #<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "$"]>>
+
+# 能够读取字符串，并存储跟踪PDA的当前状态
+class DPDA < Struct.new(:current_configuration, :accept_states, :rulebook)
+  def accepting?
+    accept_states.include?(current_configuration.state)
+  end
+
+  def read_character(character)
+    self.current_configuration = rulebook.next_configuration(current_configuration, character)
+  end
+
+  def read_string(string)
+    string.chars.each do |character|
+      read_character(character)
+    end
+  end
+end
+
+dpda = DPDA.new(PDAConfiguration.new(1, Stack.new(['$'])), [1], rulebook)
+
+dpda.accepting? # true
+dpda.read_string('(()')
+dpda.accepting? # false
