@@ -58,3 +58,30 @@ rule.applies_to?(configuration, '(') # true
 
 rule.follow(configuration)
 # <struct PDAConfiguration state = 2, stack=#<Stack (b)$>>
+
+# 规则存储
+class DPDARulebook < Struct.new(:rules)
+  # 将和当前PDA匹配的规则，应用于当前PDA
+  def next_configuration(configuration, character)
+    rule_for(configuration, character).follow(configuration);
+  end
+  
+  # 根据当前状态，栈以及输入，检测和当前PDA匹配的规则
+  def rule_for(configuration, character)
+    rules.detect { |rule|  rule.applies_to?(configuration, character) }
+  end
+end
+
+rulebook = DPDARulebook.new([
+  PDARule.new(1, '(', 2, '$', ['b', '$']),
+  PDARule.new(2, '(', 2, 'b', ['b', 'b']),
+  PDARule.new(2, ')', 2, 'b', []),
+  PDARule.new(2, nil, 1, '$', ['$'])
+]);
+
+configuration = rulebook.next_configuration(configuration, '(')
+#<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "$"]>>
+configuration = rulebook.next_configuration(configuration, '(')
+#<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "b", "$"]>>
+configuration = rulebook.next_configuration(configuration, ')')
+#<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "$"]>>
