@@ -71,6 +71,19 @@ class DPDARulebook < Struct.new(:rules)
   def rule_for(configuration, character)
     rules.detect { |rule|  rule.applies_to?(configuration, character) }
   end
+
+  def applies_to?(configuration, character)
+    !rule_for(configuration, character).nil?
+  end
+  
+  # 自由移动
+  def follow_free_moves(configuration)
+    if applies_to?(configuration, nil)
+      follow_free_moves(next_configuration(configuration, nil))
+    else
+      configuration
+    end
+  end
 end
 
 rulebook = DPDARulebook.new([
@@ -109,3 +122,10 @@ dpda = DPDA.new(PDAConfiguration.new(1, Stack.new(['$'])), [1], rulebook)
 dpda.accepting? # true
 dpda.read_string('(()')
 dpda.accepting? # false
+dpda.current_configuration
+#<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "$"]>>
+
+
+configuration = PDAConfiguration.new(2, Stack.new(['$']))
+rulebook.follow_free_moves(configuration)
+ #<struct PDAConfiguration state=1, stack=#<struct Stack contents=["$"]>>
