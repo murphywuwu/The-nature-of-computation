@@ -132,7 +132,6 @@ class DPDA < Struct.new(:current_configuration, :accept_states, :rulebook)
 
   def read_character(character)
     self.current_configuration = (next_configuration(character))
-    puts "#{(next_configuration(character))}"
   end
 
   def read_string(string)
@@ -203,7 +202,7 @@ dpda_design.accepts?('(()') # false
 rulebook = DPDARulebook.new([
   PDARule.new(1, 'a', 2, '$', ['a', '$']),
   PDARule.new(1, 'b', 2, '$', ['b', '$']),
-  
+
   # b在栈顶
   # 读到b，就积累b
   PDARule.new(2, 'b', 2, 'b', ['b', 'b']),
@@ -221,6 +220,28 @@ rulebook = DPDARulebook.new([
 
 dpda_design = DPDADesign.new(1, '$', [1], rulebook)
 
-dpda_design.accepts?('ababab')
-dpda_design.accepts?('bbbaaaab')
-dpda_design.accepts?('baa')
+dpda_design.accepts?('ababab') # true
+dpda_design.accepts?('bbbaaaab') # true
+dpda_design.accepts?('baa') # false
+
+rulebook = DPDARulebook.new([
+  PDARule.new(1, 'a', 1 , '$', ['a', '$']),
+  PDARule.new(1, 'a', 1, 'a', ['a', 'a']),
+  PDARule.new(1, 'a', 1, 'b', ['a', 'b']),
+  PDARule.new(1, 'b', 1, '$', ['b', '$']),
+  PDARule.new(1, 'b', 1, 'a', ['b', 'a']),
+  PDARule.new(1, 'b', 1, 'b', ['b', 'b']),
+  PDARule.new(1, 'm', 2, '$', ['$']),
+  PDARule.new(1, 'm', 2, 'a', ['a']),
+  PDARule.new(1, 'm', 2, 'b', ['b']),
+  PDARule.new(2, 'a', 2, 'a', []),
+  PDARule.new(2, 'b', 2, 'b', []),
+  PDARule.new(2, nil, 3, '$', ['$'])
+])
+
+dpda_design = DPDADesign.new(1, '$', [3], rulebook);
+
+dpda_design.accepts?('abmba') # true
+dpda_design.accepts?('babbamabbab') # true
+dpda_design.accepts?('abmb') # false
+dpda_design.accepts?('baambaa') # false
