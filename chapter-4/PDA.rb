@@ -34,7 +34,7 @@ class PDARule < Struct.new(:state, :character, :next_state, :pop_character, :pus
   # 规则匹配：判断PDA当前状态，栈的内容，输入字符和规则是否匹配
   def applies_to?(configuration, character)
     self.state == configuration.state &&
-    self.pop_character = configuration.stack.pop &&
+    self.pop_character == configuration.stack.top &&
     self.character == character
   end
 
@@ -76,7 +76,7 @@ class DPDARulebook < Struct.new(:rules)
     !rule_for(configuration, character).nil?
   end
   
-  # 自由移动
+  # 自由移动: 不断地反复执行能应用到当前配置的任何自由移动，直到没有自由自动的时候才会停止
   def follow_free_moves(configuration)
     if applies_to?(configuration, nil)
       follow_free_moves(next_configuration(configuration, nil))
@@ -102,6 +102,10 @@ configuration = rulebook.next_configuration(configuration, ')')
 
 # 能够读取字符串，并存储跟踪PDA的当前状态
 class DPDA < Struct.new(:current_configuration, :accept_states, :rulebook)
+  def current_configuration
+    rulebook.follow_free_moves(super)
+  end
+
   def accepting?
     accept_states.include?(current_configuration.state)
   end
@@ -128,4 +132,16 @@ dpda.current_configuration
 
 configuration = PDAConfiguration.new(2, Stack.new(['$']))
 rulebook.follow_free_moves(configuration)
+ #<struct PDAConfiguration state=1, stack=#<struct Stack contents=["$"]>>
+
+ dpda = DPDA.new(PDAConfiguration.new(1, Stack.new(['$'])), [1], rulebook)
+ dpda.read_string('(()(')
+ dpda.accepting?# false
+ dpda.current_configuration
+ #<struct PDAConfiguration state=2, stack=#<struct Stack contents=["b", "b", "$"]>>
+
+ dpda.read_string('))()')
+ dpda.accepting? # true
+
+ dpda.current_configuration
  #<struct PDAConfiguration state=1, stack=#<struct Stack contents=["$"]>>
