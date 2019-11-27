@@ -132,6 +132,7 @@ class DPDA < Struct.new(:current_configuration, :accept_states, :rulebook)
 
   def read_character(character)
     self.current_configuration = (next_configuration(character))
+    puts "#{(next_configuration(character))}"
   end
 
   def read_string(string)
@@ -198,3 +199,28 @@ dpda.current_configuration
 dpda.stuck? # true
 
 dpda_design.accepts?('(()') # false
+
+rulebook = DPDARulebook.new([
+  PDARule.new(1, 'a', 2, '$', ['a', '$']),
+  PDARule.new(1, 'b', 2, '$', ['b', '$']),
+  
+  # b在栈顶
+  # 读到b，就积累b
+  PDARule.new(2, 'b', 2, 'b', ['b', 'b']),
+  # 读到a，就弹出b
+  PDARule.new(2, 'a', 2, 'b', []),
+
+  # a在栈顶
+  # 意味着机器已经看到a过剩了，因此任何额外从输入读取的a将会在栈中积累
+  PDARule.new(2, 'a', 2, 'a', ['a', 'a']),
+  # 而每读到一个b就会从栈中弹出一个a作为抵消
+  PDARule.new(2, 'b', 2, 'a', []),
+
+  PDARule.new(2, nil, 1, '$', ['$']),
+])
+
+dpda_design = DPDADesign.new(1, '$', [1], rulebook)
+
+dpda_design.accepts?('ababab')
+dpda_design.accepts?('bbbaaaab')
+dpda_design.accepts?('baa')
