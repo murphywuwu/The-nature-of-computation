@@ -3,6 +3,11 @@ require_relative './tm_configuration.rb'
 require_relative './tape.rb'
 
 class DTMRulebook < Struct.new(:rules)
+  # 根据规则和当前配置，判断图灵机是否处于卡死状态
+  def applies_to?(configuration)
+    !rule_for(configuration).nil?
+  end
+
   def next_configuration(configuration)
     rule_for(configuration).follow(configuration)
   end
