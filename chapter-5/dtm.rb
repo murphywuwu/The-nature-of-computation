@@ -42,4 +42,8 @@ dtm.current_configuration
 #<struct TMConfiguration state=3, tape=#< Tape 110(0)_>
 dtm.accepting? # true
 
-
+# 进入卡死状态
+tape = Tape.new(['1', '2', '1'], '1', [], '_')
+dtm = DTM.new(TMConfiguration.new(1, tape), [3], rulebook)
+dtm.run
+# NoMethodError: undefined method `follow' for nil:NilClass
