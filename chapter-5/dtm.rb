@@ -13,8 +13,12 @@ class DTM < Struct.new(:current_configuration, :accept_states, :rulebook)
     self.current_configuration = rulebook.next_configuration(current_configuration)
   end
 
+  def stuck?
+    !accepting? && !rulebook.applies_to?(current_configuration)
+  end
+
   def run
-    step until accepting?
+    step until accepting? || stuck?
   end
 end
 
@@ -42,8 +46,13 @@ dtm.current_configuration
 #<struct TMConfiguration state=3, tape=#< Tape 110(0)_>
 dtm.accepting? # true
 
-# 进入卡死状态
+# 卡死状态
 tape = Tape.new(['1', '2', '1'], '1', [], '_')
 dtm = DTM.new(TMConfiguration.new(1, tape), [3], rulebook)
 dtm.run
-# NoMethodError: undefined method `follow' for nil:NilClass
+dtm.current_configuration
+#<struct TMConfiguration state=1, tape=#< Tape 1(2)00>
+dtm.accepting?
+# false
+dtm.stuck?
+# true
