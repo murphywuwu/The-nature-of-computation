@@ -1,4 +1,4 @@
-def to_inerger(proc)
+def to_interger(proc)
   proc[ -> n { n + 1 } ][0]
 end
 
