@@ -23,3 +23,9 @@ IF    = -> b { b }
 
 to_boolean(TRUE)
 to_boolean(FALSE)
+
+# 谓词
+IS_ZERO = -> n { n[-> x { FALSE }][TRUE] }
+
+to_boolean(IS_ZERO[ZERO]) # true
+to_boolean(IS_ZERO[THREE]) # false
