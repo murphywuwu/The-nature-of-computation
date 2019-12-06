@@ -15,3 +15,10 @@ to_inerger(THREE) # 3
 to_inerger(FIVE) # 5
 to_inerger(FIFTEEN) # 15
 to_inerger(HUNDRED) # 100
+
+# 布尔值
+TRUE =  -> x { -> y { x } }
+FALSE = -> x { -> y { y } }
+
+to_boolean(TRUE)
+to_boolean(FALSE)
