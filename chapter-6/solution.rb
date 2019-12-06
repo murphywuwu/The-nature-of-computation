@@ -47,3 +47,8 @@ to_interger(DECREMENT[FIVE]) # 4
 to_interger(DECREMENT[FIFTEEN]) # 14
 to_interger(DECREMENT[HUNDRED]) # 99
 to_interger(DECREMENT[ZERO])# 0
+
+ADD = -> m { -> n { n[INCREMENT][m] } }
+SUBTRACT = -> m { -> n { n[DECREMENT][m] } }
+MULTIPLY = -> m { -> n { n[ADD[m]][ZERO] } } 
+POWER = -> m { -> n { n[MULTIPLY[m]][ONE] } }
