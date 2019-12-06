@@ -52,3 +52,14 @@ ADD = -> m { -> n { n[INCREMENT][m] } }
 SUBTRACT = -> m { -> n { n[DECREMENT][m] } }
 MULTIPLY = -> m { -> n { n[ADD[m]][ZERO] } } 
 POWER = -> m { -> n { n[MULTIPLY[m]][ONE] } }
+
+# m <= n的话，SUBTRACT[m][n]会返回zero
+IS_LESS_OR_EQUAL = -> m {
+  -> n {
+    IS_ZERO[SUBTRACT[m][n]]
+  }
+}
+
+to_boolean(IS_LESS_OR_EQUAL[ONE][TWO]) # true
+to_boolean(IS_LESS_OR_EQUAL[TWO][TWO]) # true
+to_boolean(IS_LESS_OR_EQUAL[THREE][TWO]) # false
