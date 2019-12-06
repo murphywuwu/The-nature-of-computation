@@ -32,9 +32,18 @@ to_boolean(IS_ZERO[THREE]) # false
 
 # 有序对
 PAIR = -> x { -> y { -> f { f[x][y] } } }
-LFET = -> p { p[ -> x { -> y { x } }]  }
+LEFT = -> p { p[ -> x { -> y { x } }]  }
 RIGHT = -> p { p[ -> x { -> y { y } }] }
 
 my_pair = PAIR[THREE][FIVE]
-to_interger(LFET[my_pair]) # 3
+to_interger(LEFT[my_pair]) # 3
 to_interger(RIGHT[my_pair]) # 5
+
+INCREMENT = -> n { -> p { -> x { p[n[p][x]] } } }
+SLIDE     = -> p { PAIR[RIGHT[p]][INCREMENT[RIGHT[p]]] }
+DECREMENT = -> n { LEFT[n[SLIDE][PAIR[ZERO][ZERO]]] }
+
+to_interger(DECREMENT[FIVE]) # 4
+to_interger(DECREMENT[FIFTEEN]) # 14
+to_interger(DECREMENT[HUNDRED]) # 99
+to_interger(DECREMENT[ZERO])# 0
