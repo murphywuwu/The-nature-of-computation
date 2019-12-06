@@ -3,5 +3,5 @@ def to_inerger(proc)
 end
 
 def to_boolean(proc)
-  proc[true][false]
+  IF[proc][true][false]
 end
